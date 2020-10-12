@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "baseChart.fullName" . }}
+  labels:
+    {{- include "baseChart.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "baseChart.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "baseChart.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "baseChart.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      restartPolicy: {{ .Values.restartPolicy }}
+      containers:
+        - name: {{ include "baseChart.fullName" . }}
+          {{- if .Values.container.env }}
+          env:
+            {{- range .Values.container.env }}
+            - name: {{ .name }}
+              value: {{ .value }}
+            {{- end }}
+          {{- end }}
+          envFrom:
+            {{- with .Values.config }}
+            - configMapRef:
+                name: {{ include "baseChart.fullName" $ }}-{{ .Values.image.appVersion | replace "." "-" }}-config
+            {{- end }}
+            {{- with .Values.secret }}
+            - secretRef:
+                name: {{ include "baseChart.fullName" $ }}-secret
+            {{- end }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          {{- if .Values.image.repository }}
+          image: {{ .Values.image.repository }}
+          {{- else }}
+          image: "registry-fortress.fareastone.com.tw/{{ include "baseChart.releaseName" . }}/{{ .Values.nameOverride }}:{{ .Values.image.appVersion }}"
+          {{- end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            {{- range .Values.container.ports }}
+            - name: {{ default ( include "baseChart.fullName" $ ) .name }}
+              containerPort: {{ .port }}
+              protocol: {{ .protocol }}
+            {{- end }}
+          {{- if .Values.container.livenessProbe }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.container.livenessProbe.path }}
+              port: {{ .Values.container.livenessProbe.port }}
+          {{- end }}
+          {{- if .Values.container.readinessProbe }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.container.readinessProbe.path }}
+              port: {{ .Values.container.readinessProbe.port }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      affinity:
+      {{- if .Values.affinity }}
+      {{- with .Values.affinity }}
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- else }}
+      {{- include "baseChart.podAntiAffinity" . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

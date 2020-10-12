@@ -1,0 +1,11 @@
+{{- if .Values.config }}
+
+apiVersion: v1
+  {{with .Values.config}}
+data:
+  {{ toYaml . | nindent 2}}
+  {{- end }}
+kind: ConfigMap
+metadata:
+  name: {{ include "baseChart.fullName" . }}-{{.Values.image.appVersion | replace "." "-" }}-config
+  {{- end }}

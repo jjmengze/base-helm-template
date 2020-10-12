@@ -1,0 +1,129 @@
+# Default values for baseChart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+restartPolicy: Always
+
+image:
+  repository: ""
+  # Users can key in whatever repository needs, default is gitlab repository.
+  # repository: "nginx"
+  pullPolicy: IfNotPresent
+  appVersion: ${APP_VERSION}
+
+# Required: It's necessary for users to assign resource usage.
+resources:
+  limits:
+    cpu: 500m
+    memory: 200Mi
+  requests:
+    cpu: 200m
+    memory: 100Mi
+
+# Users can customize the container requirement below.
+container:
+  ports:
+    # - port: 8889
+    #   name: ""
+    #   protocol: TCP
+  livenessProbe:
+    # httpGet:
+    #   path: /health
+    #   port: 8889
+    # initialDelaySeconds: 30
+    # periodSeconds: 80
+    # timeoutSeconds: 5
+  readinessProbe:
+    # httpGet:
+    #   path: /health
+    #   port: 8889
+    # initialDelaySeconds: 30
+    # periodSeconds: 80
+    # timeoutSeconds: 5
+  env:
+    # - name: EXAMPLE_ENV
+    #   value: example
+
+# Input the secret here and it will be encoded by base64.
+secret:
+  # - name: SECRET_TOKEN
+  #   value: secret-context
+  # - name: SECRET_TOKEN2
+  #   value: secret-context
+
+
+# Customize the configurations here.
+config:
+  # NODE_ENV: production
+
+# imagePullSecrets:
+#   - name: gitlab-registry
+
+nameOverride: ${CI_PROJECT_NAME}
+
+# No need by default.
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: false
+  # Annotations to add to the service account
+  #  annotations: { }
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  #  name: ""
+
+# podAnnotations: { }
+
+# podSecurityContext: { }
+#   fsGroup: 2000
+
+# securityContext: { }
+#   capabilities:
+#     drop:
+#       - ALL
+#   readOnlyRootFilesystem: true
+#   runAsNonRoot: true
+#   runAsUser: 1000
+
+
+service:
+  type: ClusterIP
+  ports:
+    # Customize the port and protocol.
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+      # Customize the name if needed, default is "<group-name>-<project-name>"
+      # name: bot-http
+
+# Similar to the router of OCP but it's for K8S, default unenabled.
+ingress:
+  enabled: false
+  annotations: {}
+  hosts:
+    # - host: apps.bacchus.lafite.fareastone.com.tw
+    #   paths: []
+  tls: []
+    # - secretName: chart-example-tls
+    #   hosts:
+    #     - chart-example.local
+
+# OCP router, default unenabled.
+route:
+  enabled: false
+
+nodeSelector:
+  node-role.kubernetes.io/compute: ""
+
+autoscaling:
+  enabled: false
+  # minReplicas: 1
+  # maxReplicas: 100
+  # targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+#tolerations: [ ]
+
+# It takes default settings, users can customize here.
+affinity: {}
