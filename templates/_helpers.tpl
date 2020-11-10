@@ -40,9 +40,8 @@ Common labels
 {{- define "baseChart.labels" -}}
 {{ include "baseChart.selectorLabels" . }}
 {{- if .Values.image.appVersion }}
-{{ include "baseChart.labels.version" . }} : {{ .Values.image.appVersion | quote }}
+{{ include "baseChart.labels.version" . }} : {{ .Values.image.appVersion | replace "." "-" | quote }}
 {{- end }}
-{{ include "baseChart.labels.managedBy" . }} : {{ .Release.Service }}
 {{- end }}
 
 {{- define "baseChart.labels.appName" -}}
@@ -53,9 +52,6 @@ app
 version
 {{- end }}
 
-{{- define "baseChart.labels.managedBy" -}}
-app.kubernetes.io/managed-by
-{{- end }}
 
 
 {{/*
@@ -63,6 +59,14 @@ Selector labels
 */}}
 {{- define "baseChart.selectorLabels" -}}
 {{ include "baseChart.labels.appName" . }} : {{ include "baseChart.fullName" . }}
+{{- end }}
+
+{{/*
+metadata labels
+*/}}
+{{- define "baseChart.metadataLabels" -}}
+{{ include "baseChart.labels.appName" . }} : {{ include "baseChart.fullName" . }}
+{{ include "baseChart.labels.version" . }} : {{ .Values.image.appVersion | replace "." "-" | quote }}
 {{- end }}
 
 {{/*
@@ -93,7 +97,7 @@ Create the name of the podAntiAffinity to use
               - key: {{ include "baseChart.labels.version" . }}
                 operator: In
                 values:
-                  - {{ .Values.image.appVersion | quote }}
+                  - {{ .Values.image.appVersion | replace "." "-" | quote }}
           topologyKey: kubernetes.io/hostname
         weight: 100
 {{- end }}

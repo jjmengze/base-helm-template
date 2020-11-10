@@ -2,7 +2,21 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+# Currently support deployment, cronjob kind. This template is for deployment.
+kind: deployment
+
+# Now have two environment: ocp and k8s
+environment: ${ENV}
+
 replicaCount: 1
+
+revisionHistoryLimit: 5
+
+strategy: {}
+  # type: RollingUpdate
+  # rollingUpdate:
+  #   maxSurge: 1
+  #   maxUnavailable: 0
 
 restartPolicy: Always
 
@@ -12,6 +26,7 @@ image:
   # repository: "nginx"
   pullPolicy: IfNotPresent
   appVersion: ${APP_VERSION}
+  # ex: 2.3.1
 
 # Required: It's necessary for users to assign resource usage.
 resources:
@@ -22,20 +37,40 @@ resources:
     cpu: 200m
     memory: 100Mi
 
+# If use volumes, also need to add volumeMounts in container.volumeMounts
+volumes: {}
+  # - name: ${APPNAME}-mqtt-${APP_VERSION}-config-mqtt-jks
+  #   configMap:
+  #     name: ${APPNAME}-mqtt-${APP_VERSION}-config-mqtt-jks
+  # - name: prometheus-k8s-token-nxc9t
+  #   secret:
+  #     secretName: prometheus-k8s-token-nxc9t
+  # - name: prometheus-k8s-db
+  #   mountPath: /prometheus
+  #   subPath: prometheus-db
+
 # Users can customize the container requirement below.
 container:
+  # preStop - array of commands to use in the server pre-stop lifecycle hook
+  preStop:
+    # - "/bin/bash"
+    # - "/kill."
+  # postStart - array of command and arguments to run in agent post-start lifecycle hook
+  postStart:
+    #  - "/bin/bash"
+    #  - "/agent_startup.sh"
   ports:
     # - port: 8889
     #   name: ""
     #   protocol: TCP
-  livenessProbe:
+  livenessProbe: {}
     # httpGet:
     #   path: /health
     #   port: 8889
     # initialDelaySeconds: 30
     # periodSeconds: 80
     # timeoutSeconds: 5
-  readinessProbe:
+  readinessProbe: {}
     # httpGet:
     #   path: /health
     #   port: 8889
@@ -45,18 +80,27 @@ container:
   env:
     # - name: EXAMPLE_ENV
     #   value: example
+  # Need to add volumes in outside.
+  volumeMounts: {}
+    # - mountPath: /usr/share/tb-mqtt-transport/conf
+    #   name: ${APPNAME}-mqtt-${APP_VERSION}-config-mqtt-jks
+    # - name: prometheus-k8s-db
+    #   mountPath: /prometheus
+    #   subPath: prometheus-db
+    # - name: prometheus-k8s-token-nxc9t
+    #   readOnly: true
+    #   mountPath: /var/run/secrets/kubernetes.io/serviceaccount
 
-# Input the secret here and it will be encoded by base64.
-secret:
-  # - name: SECRET_TOKEN
-  #   value: secret-context
-  # - name: SECRET_TOKEN2
-  #   value: secret-context
+# Create a secret resource. Input the secret here and it will be encoded by base64.
+secret: {}
+# - name: SECRET_TOKEN
+#   value: secret-context
+# - name: SECRET_TOKEN2
+#   value: secret-context
 
-
-# Customize the configurations here.
-config:
-  # NODE_ENV: production
+# Create a configmap resource.
+config: {}
+# NODE_ENV: production
 
 # imagePullSecrets:
 #   - name: gitlab-registry
@@ -64,9 +108,8 @@ config:
 nameOverride: ${CI_PROJECT_NAME}
 
 # No need by default.
-serviceAccount:
-  # Specifies whether a service account should be created
-  create: false
+serviceAccount: {}
+  # Specifies whether a service account should be created , default not created .
   # Annotations to add to the service account
   #  annotations: { }
   # The name of the service account to use.
@@ -75,49 +118,54 @@ serviceAccount:
 
 # podAnnotations: { }
 
-# podSecurityContext: { }
-#   fsGroup: 2000
+podSecurityContext: {}
+#  fsGroup: 2000
 
-# securityContext: { }
-#   capabilities:
-#     drop:
-#       - ALL
-#   readOnlyRootFilesystem: true
-#   runAsNonRoot: true
-#   runAsUser: 1000
+securityContext: {}
+# capabilities:
+#   drop:
+#     - ALL
+# readOnlyRootFilesystem: true
+# runAsNonRoot: true
+# runAsUser: 1000
 
+service: {}
+  # type: ClusterIP
+  # ports:
+  #   Customize the port and protocol.
+  #   - port: 80
+  #     targetPort: 80
+  #     protocol: TCP
+  #     name: bot-http
 
-service:
-  type: ClusterIP
-  ports:
-    # Customize the port and protocol.
-    - port: 80
-      targetPort: 80
-      protocol: TCP
-      # Customize the name if needed, default is "<group-name>-<project-name>"
-      # name: bot-http
-
-# Similar to the router of OCP but it's for K8S, default unenabled.
+# Similar to the router of OCP but it's for K8S, default not enable.
 ingress:
-  enabled: false
-  annotations: {}
-  hosts:
-    # - host: apps.bacchus.lafite.fareastone.com.tw
-    #   paths: []
-  tls: []
-    # - secretName: chart-example-tls
-    #   hosts:
-    #     - chart-example.local
+  enable: false
+  # annotations: { }
+  # hosts:
+  # - host: apps.bacchus.lafite.fareastone.com.tw
+  #   paths: []
+  # tls: [ ]
+  #  - secretName: chart-example-tls
+  #     hosts:
+  #     - chart-example.local
 
-# OCP router, default unenabled.
+# OCP router, default not enabled.
 route:
-  enabled: false
+  enable: false
+  # tls:
+  #   termination: edge
+  #   certificate: |-
+  #   key: |-
+  #   caCertificate: |-
+  #   insecureEdgeTerminationPolicy: Redirect
+  # wildcardPolicy: None
 
 nodeSelector:
   node-role.kubernetes.io/compute: ""
 
-autoscaling:
-  enabled: false
+# default not enable
+autoscaling: {}
   # minReplicas: 1
   # maxReplicas: 100
   # targetCPUUtilizationPercentage: 80

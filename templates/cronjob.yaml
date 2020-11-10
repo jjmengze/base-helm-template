@@ -1,0 +1,98 @@
+{{- if eq .Values.kind "cronjob" }}
+
+{{- range $job := .Values.cronjobs }}
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  labels: {{- include "baseChart.labels" $ | nindent 4 }}
+  name: {{ $job.name }}
+  {{- with $job.annotations }}
+  annotations:
+    {{- toYaml . | indent 4 }}
+  {{- end }}
+spec:
+  schedule: {{ $job.schedule | quote }}
+  {{- with $job.concurrencyPolicy }}
+  concurrencyPolicy: {{ . }}
+  {{- end }}
+  {{- with $job.suspend }}
+  suspend: {{ . }}
+  {{- end }}
+  {{- with $job.successfulJobsHistoryLimit }}
+  successfulJobsHistoryLimit: {{ . }}
+  {{- end }}
+  {{- with $job.failedJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ . }}
+  {{- end }}
+  jobTemplate:
+    spec:
+      {{- with $job.backoffLimit }}
+      backoffLimit: {{ . }}
+      {{- end }}
+      template:
+        spec:
+          restartPolicy: {{ $job.restartPolicy }}
+          {{- with  $job.securityContext }}
+          securityContext: {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $job.volumes }}
+          volumes:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $.Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if $.Values.affinity }}
+          affinity:
+            {{- toYaml $.Values.affinity | nindent 12 }}
+          {{- end }}
+          {{- with $.Values.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with  $job.terminationGracePeriodSeconds }}
+          terminationGracePeriodSeconds: {{ . }}
+          {{- end }}
+          {{- with  $job.dnsPolicy }}
+          dnsPolicy: {{ . }}
+          {{- end }}
+          containers:
+          - name: {{ include "baseChart.fullName" $ }}
+            {{- if $.Values.image.repository }}
+            image: {{ $.Values.image.repository }}
+            {{- else }}
+            image: "registry-fortress.fareastone.com.tw/{{ include "baseChart.releaseName" $ }}/{{ $.Values.nameOverride }}:{{ $.Values.image.appVersion }}"
+            {{- end }}
+            imagePullPolicy: {{ $.Values.image.pullPolicy }}
+            {{- if $job.container.command }}
+            command:
+              {{- range $job.container.command }}
+              - {{ . | quote }}
+              {{- end }}
+            {{- end }}
+            {{- if $job.container.env }}
+            env:
+              {{- range $job.container.env }}
+              - name: {{ .name }}
+                value: {{ .value }}
+              {{- end }}
+            {{- end }}
+            envFrom:
+              {{- if $.Values.config }}
+              - configMapRef:
+                  name: {{ include "baseChart.fullName" $ }}-{{ $.Values.image.appVersion | replace "." "-" }}-config
+              {{- end }}
+              {{- if $.Values.secret }}
+              - secretRef:
+                  name: {{ include "baseChart.fullName" $ }}-secret
+              {{- end }}
+            {{- with $job.container.volumeMounts }}
+            volumeMounts:
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            resources:
+              {{- toYaml $job.resources | nindent 16 }}
+{{- end }}
+{{- end }}

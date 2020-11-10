@@ -34,6 +34,7 @@ RUN apk update \
        libintl="${LIBINTL_VER}" \
     && rm -rf /var/cache/apk/*
 
+COPY . /base-chart/
 COPY --from=builder /linux-amd64/helm /usr/local/bin/
 COPY --from=builder /kubectl /usr/local/bin/
 COPY --from=builder /kustomize /usr/local/bin/

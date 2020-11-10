@@ -1,0 +1,164 @@
+# Default values for baseChart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Currently support deployment, cronjob kind. This template is for cronjob.
+kind: cronjob
+
+# Now have two environment: ocp and k8s
+environment: ${ENV}
+
+image:
+  repository: ""
+  # Users can key in whatever repository needs, default is gitlab repository.
+  # repository: "nginx"
+  pullPolicy: IfNotPresent
+  appVersion: ${APP_VERSION}
+
+# Input the secret here and it will be encoded by base64.
+secret: {}
+# - name: SECRET_TOKEN
+#   value: secret-context
+# - name: SECRET_TOKEN2
+#   value: secret-context
+
+# Customize the configurations here.
+config: {}
+# NODE_ENV: production
+
+nameOverride: ${CI_PROJECT_NAME}
+
+nodeSelector:
+  node-role.kubernetes.io/compute: ""
+
+tolerations: []
+
+# It takes default settings, users can customize here.
+affinity: {}
+
+# For creating one or more cronjobs
+cronjobs:
+  # A range of cronjobs
+  - name: etl-accounting-storage-deploy
+    # Only a RestartPolicy equal to Never or OnFailure is allowed.
+    # It takes a Cron format string
+    schedule: "01 * * * *"
+    resources:
+      limits:
+        cpu: 500m
+        memory: 200Mi
+      requests:
+        cpu: 200m
+        memory: 100Mi
+    volumes: {}
+      # - name: ${APPNAME}-mqtt-${APP_VERSION}-config-mqtt-jks
+      #   configMap:
+      #     name: ${APPNAME}-mqtt-${APP_VERSION}-config-mqtt-jks
+      # - name: prometheus-k8s-token-nxc9t
+      #   secret:
+      #     secretName: prometheus-k8s-token-nxc9t
+      # - name: prometheus-k8s-db
+      #   mountPath: /prometheus
+      #   subPath: prometheus-db
+    # Users can customize the container requirement below.
+    container:
+      command: {}
+        # - /bin/sh
+        # - date
+      env: {}
+        # - name: CASSANDRA_HOST
+        #   value: cassandra.cat.internal-lafite.fetnet
+        # - name: CASSANDRA_PORT
+        #   value: 9042
+      volumeMounts: {}
+        # - mountPath: /usr/share/tb-mqtt-transport/conf
+        #   name: ${APPNAME}-mqtt-${APP_VERSION}-config-mqtt-jks
+        # - name: prometheus-k8s-db
+        #   mountPath: /prometheus
+        #   subPath: prometheus-db
+        # - name: prometheus-k8s-token-nxc9t
+        #   readOnly: true
+        #   mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+    restartPolicy: Never
+    # It specifies how to treat concurrent executions of a job that is created by this cron job, default is Allow.
+    # concurrencyPolicy: Allow
+    # If it is set to true, all subsequent executions are suspended, default is false.
+    # suspend: false
+    # specify the number of retries before considering a Job as failed, default is 6
+    backoffLimit: 1
+    # terminationGracePeriodSeconds: 30
+    # Set DNS policy for the pod. Defaults to "ClusterFirst".
+    # dnsPolicy: ClusterFirst
+    # By default, successfulJobsHistoryLimit is set to 3 and failedJobsHistoryLimit is set to 1.
+    # successfulJobsHistoryLimit: 3
+    # failedJobsHistoryLimit: 1
+    annotations: {}
+    securityContext: {}
+    #   capabilities:
+    #     drop:
+    #       - ALL
+    #   readOnlyRootFilesystem: true
+    #   runAsNonRoot: true
+    #   runAsUser: 1000
+
+  - name: etl-accounting-upload-deploy
+    # Only a RestartPolicy equal to Never or OnFailure is allowed.
+    # It takes a Cron format string
+    schedule: "*/5 * * * *"
+    resources:
+      limits:
+        cpu: 500m
+        memory: 200Mi
+      requests:
+        cpu: 200m
+        memory: 100Mi
+    volumes: {}
+      # - name: ${APPNAME}-mqtt-${APP_VERSION}-config-mqtt-jks
+      #   configMap:
+      #     name: ${APPNAME}-mqtt-${APP_VERSION}-config-mqtt-jks
+      # - name: prometheus-k8s-token-nxc9t
+      #   secret:
+      #     secretName: prometheus-k8s-token-nxc9t
+      # - name: prometheus-k8s-db
+      #   mountPath: /prometheus
+      #   subPath: prometheus-db
+    # Users can customize the container requirement below.
+    container:
+      command:
+        - /bin/sh
+        - date
+      env:
+        - name: CASSANDRA_HOST
+          value: cassandra.cat.internal-lafite.fetnet
+        - name: CASSANDRA_PORT
+          value: 9042
+      volumeMounts: {}
+        # - mountPath: /usr/share/tb-mqtt-transport/conf
+        #   name: ${APPNAME}-mqtt-${APP_VERSION}-config-mqtt-jks
+        # - name: prometheus-k8s-db
+        #   mountPath: /prometheus
+        #   subPath: prometheus-db
+        # - name: prometheus-k8s-token-nxc9t
+        #   readOnly: true
+        #   mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+    restartPolicy: Never
+    # It specifies how to treat concurrent executions of a job that is created by this cron job, default is Allow.
+    # concurrencyPolicy: Allow
+    # If it is set to true, all subsequent executions are suspended, default is false.
+    # suspend: false
+    # specify the number of retries before considering a Job as failed, default is 6
+    backoffLimit: 1
+    # terminationGracePeriodSeconds: 30
+    # Set DNS policy for the pod. Defaults to "ClusterFirst".
+    # dnsPolicy: ClusterFirst
+    # By default, successfulJobsHistoryLimit is set to 3 and failedJobsHistoryLimit is set to 1.
+    # successfulJobsHistoryLimit: 3
+    # failedJobsHistoryLimit: 1
+    annotations: {}
+    securityContext: {}
+    #   capabilities:
+    #     drop:
+    #       - ALL
+    #   readOnlyRootFilesystem: true
+    #   runAsNonRoot: true
+    #   runAsUser: 1000

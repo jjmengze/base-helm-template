@@ -1,4 +1,6 @@
-{{- if .Values.route.enabled -}}
+{{- if eq .Values.environment "ocp" }}
+{{- if .Values.route }}
+{{- if .Values.route.enable }}
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
@@ -8,4 +10,17 @@ spec:
   to:
     kind: Service
     name: {{ include "baseChart.fullName" . }}
+  {{- with .Values.route.tls }}
+  tls:
+    termination: {{ .termination }}
+    certificate: {{ .certificate | quote }}
+    key: {{ .key | quote }}
+    caCertificate: {{ .caCertificate | quote }}
+    insecureEdgeTerminationPolicy: {{ .insecureEdgeTerminationPolicy }}
   {{- end }}
+  {{- with .Values.route.wildcardPolicy }}
+  wildcardPolicy: {{ . }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

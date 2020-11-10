@@ -1,0 +1,17 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: "${APPLICATION_NAME}"
+spec:
+  template:
+    spec:
+      containers:
+        - name: "${APPLICATION_NAME}"
+          image: registry-fortress.fareastone.com.tw/prod-ai-plus/service-ems-energysavings/tf-serving:0.8.20
+          resources:
+            requests:
+              cpu: "1"
+              memory: "3072Mi"
+            limits:
+              cpu: "1"
+              memory: "4096Mi"

@@ -4,7 +4,7 @@ kind: Service
 metadata:
   name: {{ include "baseChart.fullName" . }}
   labels:
-  {{- include "baseChart.labels" . | nindent 4 }}
+    name: {{ include "baseChart.fullName" . }}
 spec:
   type: {{ default "ClusterIP"}}
   ports:
@@ -12,7 +12,9 @@ spec:
     - port: {{ .port }}
       targetPort: {{ .targetPort }}
       protocol: {{ .protocol | default "TCP"}}
-      name: {{ .name }}
+      {{- with .name }}
+      name: {{ . }}
+      {{- end }}
     {{- end}}
   selector:
     {{- include "baseChart.selectorLabels" . | nindent 4 }}

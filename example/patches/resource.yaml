@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "${APPLICATION_NAME}"
+spec:
+  # replicas: 2    ## if you need to change replica
+  template:
+    spec:
+      containers:
+      - name: "${APPLICATION_NAME}"
+        resources:
+          requests:
+            memory: "300Mi"
+            cpu: "200m"
+          limits:
+            memory: "400Mi"
+            cpu: "300m"

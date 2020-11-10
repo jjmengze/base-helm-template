@@ -1,0 +1,17 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    k8s-app: rule-engine-exporter
+  name: rule-engine-exporter
+  namespace: openshift-monitoring ## do not change it
+spec:
+  namespaceSelector:
+    matchNames:
+      - prod-cat-core-cat-tb-rule-engine  ## namespace
+  endpoints:
+  - port: '8080' ## metric port
+    path: /actuator/prometheus  ## metric path
+  selector:
+    matchLabels:
+      name: prod-cat-core-cat-tb-rule-engine  ## Service label

@@ -1,0 +1,3 @@
+resources:
+  - ../../base
+  - ./rule-engine-exporter.yaml

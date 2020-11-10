@@ -1,0 +1,6 @@
+resources:
+  - ../../base
+patches:
+  - resource.yaml
+  - container.yaml
+  - env.yaml

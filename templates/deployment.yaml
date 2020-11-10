@@ -1,3 +1,4 @@
+{{- if eq .Values.kind "deployment" }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -8,9 +9,16 @@ spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
+  {{- with .Values.revisionHistoryLimit }}
+  revisionHistoryLimit: {{ . }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "baseChart.selectorLabels" . | nindent 6 }}
+  {{- with .Values.strategy }}
+  strategy:
+    {{- toYaml . | nindent 6 }}
+  {{- end }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -18,15 +26,17 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "baseChart.selectorLabels" . | nindent 8 }}
+        {{- include "baseChart.metadataLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "baseChart.serviceAccountName" . }}
+      {{- with  .Values.podSecurityContext }}
       securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       restartPolicy: {{ .Values.restartPolicy }}
       containers:
         - name: {{ include "baseChart.fullName" . }}
@@ -40,16 +50,18 @@ spec:
           envFrom:
             {{- with .Values.config }}
             - configMapRef:
-                name: {{ include "baseChart.fullName" $ }}-{{ .Values.image.appVersion | replace "." "-" }}-config
+                name: {{ include "baseChart.fullName" $ }}-{{ $.Values.image.appVersion | replace "." "-" }}-config
             {{- end }}
             {{- with .Values.secret }}
             - secretRef:
                 name: {{ include "baseChart.fullName" $ }}-secret
             {{- end }}
+          {{- with  .Values.securityContext }}
           securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- if .Values.image.repository }}
-          image: {{ .Values.image.repository }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.appVersion }}"
           {{- else }}
           image: "registry-fortress.fareastone.com.tw/{{ include "baseChart.releaseName" . }}/{{ .Values.nameOverride }}:{{ .Values.image.appVersion }}"
           {{- end }}
@@ -60,20 +72,39 @@ spec:
               containerPort: {{ .port }}
               protocol: {{ .protocol }}
             {{- end }}
-          {{- if .Values.container.livenessProbe }}
-          livenessProbe:
-            httpGet:
-              path: {{ .Values.container.livenessProbe.path }}
-              port: {{ .Values.container.livenessProbe.port }}
+          {{- with .Values.container.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- if .Values.container.readinessProbe }}
+          {{- with .Values.container.livenessProbe }}
+          livenessProbe:
+            {{ toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.container.readinessProbe }}
           readinessProbe:
-            httpGet:
-              path: {{ .Values.container.readinessProbe.path }}
-              port: {{ .Values.container.readinessProbe.port }}
+            {{ toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if or .Values.container.preStop .Values.container.postStart }}
+          lifecycle:
+            {{- if .Values.container.postStart }}
+            postStart:
+              exec:
+                command:
+                  {{ toYaml .Values.container.postStart | nindent 18 }}
+            {{- end }}
+            {{- if .Values.container.preStop }}
+            preStop:
+              exec:
+                command:
+                  {{ toYaml .Values.container.preStop | nindent 18 }}
+            {{- end }}
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -90,3 +121,4 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+  {{- end }}
