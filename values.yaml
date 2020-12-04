@@ -141,10 +141,16 @@ service: {}
 # Similar to the router of OCP but it's for K8S, default not enable.
 ingress:
   enable: false
+  labels: {}
   # annotations: { }
-  # hosts:
-  # - host: apps.bacchus.lafite.fareastone.com.tw
-  #   paths: []
+  hosts:
+  #- host: apps.bacchus.lafite.fareastone.com.tw #if this field was not setup the host name will be set fullname.apps.bacchus.lafite.fareastone.com.tw
+  #  paths: 
+  #     - pathType: Prefix
+  #       path: /
+  #       backend:
+  #         serviceName: nginx
+  #         servicePort: 80
   # tls: [ ]
   #  - secretName: chart-example-tls
   #     hosts:
@@ -153,6 +159,9 @@ ingress:
 # OCP router, default not enabled.
 route:
   enable: false
+  labels: {}
+  # servicePort: 80
+  # host: hostname if this field was not setup the host name will be set fullname.apps.bacchus.lafite.fareastone.com.tw
   # tls:
   #   termination: edge
   #   certificate: |-

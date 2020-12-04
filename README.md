@@ -1,11 +1,7 @@
 # service-base-chart
 
-測試 `values.yaml`  透過 base chart 與 kustomize 渲染結果是否正確，首先我們需要下載 base chart tool box 的 docker image，指令如下所示。
-```bash
-docker run -ti --rm registry-fortress.fareastone.com.tw/prod-lafite/service-base-chart:1.0.10 bash
-```
 
-接著建立 kustomize 需要的目錄結構，並且將 container image 內置的 base chart 移動到 base 下。
+建立 kustomize 需要的目錄結構，並且將 container image 內置的 base chart 移動到 base 下。
 ```bash
 mkdir -p /base
 mkdir -p /overlays/ocp
@@ -251,7 +247,6 @@ We would now set up our folder structure like this:
     └── var_replace.sh  # Replace the environment value to real value
 ```
 
-More rules and examples, please refer to [wiki](https://fortress.fareastone.com.tw/prod-lafite/service-base-chart/-/wikis/deployment-naming-discipline).
 
 - Reference: [KUSTOMIZE API Reference](https://kubernetes-sigs.github.io/kustomize/api-reference/kustomization/)
 

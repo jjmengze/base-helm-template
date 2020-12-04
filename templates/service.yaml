@@ -13,7 +13,7 @@ spec:
       targetPort: {{ .targetPort }}
       protocol: {{ .protocol | default "TCP"}}
       {{- with .name }}
-      name: {{ . }}
+      name: {{ . | quote }}
       {{- end }}
     {{- end}}
   selector:

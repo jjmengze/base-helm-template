@@ -68,7 +68,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             {{- range .Values.container.ports }}
-            - name: {{ default ( include "baseChart.fullName" $ ) .name }}
+            - name: {{ .name | default .port | quote }}
               containerPort: {{ .port }}
               protocol: {{ .protocol }}
             {{- end }}
